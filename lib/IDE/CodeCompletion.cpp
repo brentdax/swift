@@ -5249,7 +5249,8 @@ class CodeCompletionTypeContextAnalyzer {
   ExprParentFinder Finder;
 
 public:
-  CodeCompletionTypeContextAnalyzer(DeclContext *DC, Expr *ParsedExpr) : DC(DC),
+  CodeCompletionTypeContextAnalyzer(DeclContext *DC, Expr *ParsedExpr,
+                                    bool AncestorsWithinBrace = false) : DC(DC),
     ParsedExpr(ParsedExpr), SM(DC->getASTContext().SourceMgr),
     Context(DC->getASTContext()),
     Finder(ParsedExpr,  [](ASTWalker::ParentTy Node, ASTWalker::ParentTy Parent) {
@@ -5297,7 +5298,7 @@ public:
         }
       } else
         return false;
-    }, /*AncestorsWithinBrace=*/true) {}
+    }, /*AncestorsWithinBrace=*/AncestorsWithinBrace) {}
 
   void analyzeExpr(Expr *Parent, llvm::function_ref<void(Type)> Callback,
                    SmallVectorImpl<StringRef> &PossibleNames) {
@@ -5752,8 +5753,9 @@ void CodeCompletionCallbacksImpl::doneParsing() {
   case CompletionKind::UnresolvedMember: {
     Lookup.setHaveDot(DotLoc);
     SmallVector<Type, 2> PossibleTypes;
-    ::CodeCompletionTypeContextAnalyzer TypeAnalyzer(CurDeclContext,
-                                                     CodeCompleteTokenExpr);
+    ::CodeCompletionTypeContextAnalyzer
+        TypeAnalyzer(CurDeclContext, CodeCompleteTokenExpr,
+                     /*AncestorsWithinBrace=*/true);
     if (TypeAnalyzer.Analyze(PossibleTypes))
       Lookup.setExpectedTypes(PossibleTypes);
     Lookup.getUnresolvedMemberCompletions(PossibleTypes);

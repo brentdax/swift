@@ -995,24 +995,11 @@ extension _StringGuts {
     self.append(other._wholeString._guts, range: other._encodedOffsetRange)
   }
 
-  @inlinable // @testable
+  @usableFromInline // @testable
   internal
   mutating func append(_ other: _StringGuts) {
-    // We inline only the _isEmptySingleton check because it can often be
-    // proven or disproven at compile time. A full length check is often
-    // inconclusive.
-    if _isEmptySingleton {
-      self = other
-      return
-    }
-    _appendSlow(other)
-  }
-
-  @usableFromInline
-  internal
-  mutating func _appendSlow(_ other: _StringGuts) {
     // FIXME(TODO: JIRA): shouldn't _isEmptySingleton be sufficient?
-    if self.count == 0 && !_object.isNative {
+    if _isEmptySingleton || self.count == 0 && !_object.isNative {
       // We must be careful not to discard any capacity that
       // may have been reserved for the append -- this is why
       // we check for the empty string singleton rather than
@@ -1020,6 +1007,12 @@ extension _StringGuts {
       self = other
       return
     }
+    _appendWithoutEmptyCheck(other)
+  }
+
+  @usableFromInline
+  internal
+  mutating func _appendWithoutEmptyCheck(_ other: _StringGuts) {
     if _slowPath(other._isOpaque) {
       _opaqueAppend(opaqueOther: other)
       return

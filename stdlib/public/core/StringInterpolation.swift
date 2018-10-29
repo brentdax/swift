@@ -199,7 +199,7 @@ extension DefaultStringInterpolation: TextOutputStream {
   public mutating func write(_ string: String) {
     // Most interpolations will not append to an empty string, so we bypass the
     // empty-singleton check.
-    _storage._guts._appendSlow(string._guts)
+    _storage._guts._appendWithoutEmptyCheck(string._guts)
   }
   
   @inlinable

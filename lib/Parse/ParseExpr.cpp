@@ -2049,7 +2049,7 @@ ParserResult<Expr> Parser::parseExprStringLiteral() {
 
   unsigned LiteralCapacity = 0;
   unsigned InterpolationCount = 0;
-  TapExpr * AppendingExpr;
+  BraceStmt *Body;
 
   ParserStatus Status;
   {
@@ -2075,23 +2075,21 @@ ParserResult<Expr> Parser::parseExprStringLiteral() {
     Status = parseStringSegments(Segments, EntireTok, InterpolationVar, 
                                  Stmts, LiteralCapacity, InterpolationCount);
 
-    auto Body = BraceStmt::create(Context, Loc, Stmts, EndLoc,
-                                  /*implicit=*/false);
-    AppendingExpr = new (Context) TapExpr(nullptr, Body);
+    Body = BraceStmt::create(Context, Loc, Stmts, EndLoc, /*implicit=*/false);
   }
 
   // Add the close quote the context; the quote should have a void leading trivia
   // and the trailing trivia of the entire string token.
   SyntaxContext->addToken(CloseQuote, EmptyTrivia, EntireTrailingTrivia);
 
-  if (AppendingExpr->getBody()->getNumElements() == 1) {
+  if (Body->getNumElements() == 1) {
     Status.setIsParseError();
     return makeParserResult(Status, new (Context) ErrorExpr(Loc));
   }
 
   return makeParserResult(Status, new (Context) InterpolatedStringLiteralExpr(
                                       Loc, LiteralCapacity, InterpolationCount,
-                                      AppendingExpr));
+                                      Body));
 }
 
 void Parser::parseOptionalArgumentLabel(Identifier &name, SourceLoc &loc) {

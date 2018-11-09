@@ -2256,8 +2256,12 @@ namespace {
       //   }
       //   """
 
-      auto appendingExpr = expr->getAppendingExpr();
-      appendingExpr->setSubExpr(interpolationInitCall);
+      auto *appendingExpr =
+        new (tc.Context) TapExpr(interpolationInitCall, expr->getBody());
+      cs.setType(appendingExpr, interpolationType);
+      visitTapExpr(appendingExpr);
+      tc.typeCheckTapBody(appendingExpr,
+                          appendingExpr->getVar()->getDeclContext());
 
       // initStringInterpolationExpr = """
       //   ExpressibleByStringInterpolation.init(

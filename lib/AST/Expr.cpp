@@ -795,7 +795,7 @@ shallowCloneImpl(const InterpolatedStringLiteralExpr *E, ASTContext &Ctx,
   auto res = new (Ctx) InterpolatedStringLiteralExpr(E->getLoc(),
                                                      E->getLiteralCapacity(),
                                                      E->getInterpolationCount(),
-                                                     E->getAppendingExpr());
+                                                     E->getBody());
   res->setSemanticExpr(E->getSemanticExpr());
   return res;
 }
@@ -2226,18 +2226,18 @@ void KeyPathExpr::Component::setSubscriptIndexHashableConformances(
 
 void InterpolatedStringLiteralExpr::forEachSegment(ASTContext &Ctx, 
     llvm::function_ref<void(bool, CallExpr *)> callback) {
-  auto appendingExpr = getAppendingExpr();
+  auto body = getBody();
   if (SemanticExpr) {
     SemanticExpr->forEachChildExpr([&](Expr *subExpr) -> Expr * {
       if (auto tap = dyn_cast_or_null<TapExpr>(subExpr)) {
-        appendingExpr = tap;
+        body = tap->getBody();
         return nullptr;
       }
       return subExpr;
     });
   }
 
-  for (auto stmt : appendingExpr->getBody()->getElements()) {
+  for (auto stmt : body->getElements()) {
     if (auto expr = stmt.dyn_cast<Expr*>()) {
       if (auto call = dyn_cast<CallExpr>(expr)) {
         DeclName name;

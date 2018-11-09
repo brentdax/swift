@@ -970,15 +970,15 @@ public:
 class InterpolatedStringLiteralExpr : public LiteralExpr {
   /// Points at the beginning quote.
   SourceLoc Loc;
-  TapExpr *AppendingExpr;
+  BraceStmt *Body;
   Expr *SemanticExpr;
   
 public:
   InterpolatedStringLiteralExpr(SourceLoc Loc, unsigned LiteralCapacity, 
                                 unsigned InterpolationCount,
-                                TapExpr *AppendingExpr)
+                                BraceStmt *Body)
       : LiteralExpr(ExprKind::InterpolatedStringLiteral, /*Implicit=*/false),
-        Loc(Loc), AppendingExpr(AppendingExpr), SemanticExpr() {
+        Loc(Loc), Body(Body), SemanticExpr() {
     Bits.InterpolatedStringLiteralExpr.InterpolationCount = InterpolationCount;
     Bits.InterpolatedStringLiteralExpr.LiteralCapacity = LiteralCapacity;
   }
@@ -999,8 +999,8 @@ public:
   /// \c StringInterpolationProtocol methods to append segments to the
   /// string interpolation. The first node in \c Body should be an uninitialized
   /// \c VarDecl; the other statements should append to it.
-  TapExpr * getAppendingExpr() const { return AppendingExpr; }
-  void setAppendingExpr(TapExpr * AE) { AppendingExpr = AE; }
+  BraceStmt *getBody() const { return Body; }
+  void setBody(BraceStmt * B) { Body = B; }
   
   /// \brief Retrieve the expression that actually evaluates the resulting
   /// string, typically with a series of '+' operations.

@@ -1842,7 +1842,7 @@ public:
     PrintWithColorRAII(OS, LiteralValueColor) << " literal_capacity=" 
       << E->getLiteralCapacity() << " interpolation_count="
       << E->getInterpolationCount() << '\n';
-    printRec(E->getAppendingExpr());
+    printRec(E->getBody(), E->getBody()->getElement(0).dyn_cast<Decl*>()->getASTContext());
     printSemanticExpr(E->getSemanticExpr());
     PrintWithColorRAII(OS, ParenthesisColor) << ')';
   }

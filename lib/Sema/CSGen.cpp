@@ -1232,25 +1232,6 @@ namespace {
         CS.addConstraint(ConstraintKind::Bind, tv, semanticTV,
                          semanticLocator);
       }
-      else if (auto appendingExpr = expr->getAppendingExpr()) {
-        auto associatedTypeArray = 
-          interpolationProto->lookupDirect(tc.Context.Id_StringInterpolation);
-        if (associatedTypeArray.empty()) {
-          tc.diagnose(expr->getStartLoc(), diag::interpolation_broken_proto);
-          return nullptr;
-        }
-        auto associatedTypeDecl =
-          cast<AssociatedTypeDecl>(associatedTypeArray.front());
-        auto interpolationTV = DependentMemberType::get(tv, associatedTypeDecl);
-
-        auto appendingExprType = CS.getType(appendingExpr);
-        auto appendingLocator = CS.getConstraintLocator(appendingExpr);
-
-        // Must be Conversion; if it's Equal, then in semi-rare cases, the 
-        // interpolation temporary variable cannot be @lvalue.
-        CS.addConstraint(ConstraintKind::Conversion, appendingExprType,
-                         interpolationTV, appendingLocator);
-      }
 
       return tv;
     }

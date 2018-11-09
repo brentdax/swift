@@ -446,9 +446,9 @@ class Traversal : public ASTVisitor<Traversal, Expr*, Stmt*,
   Expr *visitInterpolatedStringLiteralExpr(InterpolatedStringLiteralExpr *E) {
     HANDLE_SEMANTIC_EXPR(E);
 
-    if (auto oldAppendingExpr = E->getAppendingExpr()) {
-      if (auto appendingExpr = doIt(oldAppendingExpr))
-        E->setAppendingExpr(dyn_cast<TapExpr>(appendingExpr));
+    if (auto oldBody = E->getBody()) {
+      if (auto body = doIt(oldBody))
+        E->setBody(cast<BraceStmt>(body));
       else
         return nullptr;
     }

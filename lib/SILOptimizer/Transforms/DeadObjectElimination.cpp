@@ -736,7 +736,26 @@ class DeadObjectElimination : public SILFunctionTransform {
       invalidateAnalysis(SILAnalysis::InvalidationKind::CallsAndInstructions);
     }
   }
+};
 
+class DeadInterpolationElimination : public SILFunctionTransform {
+  llvm::SmallVector<AllocStackInst*, 8> Allocations;
+
+  void collectInterpolationAllocations(SILFunction &Fn) {
+    for (auto &BB : Fn)
+      for (auto &II : BB)
+        if (auto ASI = dyn_cast<AllocStackInst>(&II))
+          if (isDefaultStringInterpolation(ASI->getElementType()))
+            Allocations.push_back(ASI);
+  }
+
+  bool processFunction(SILFunction &Fn) {
+    DeadEndBlocks DEBlocks(&Fn);
+    Allocations.clear();
+
+    collectInterpolationAllocations(Fn);
+
+  }
 };
 } // end anonymous namespace
 
@@ -782,10 +801,7 @@ bool DeadObjectElimination::processAllocRef(AllocRefInst *ARI) {
 
 bool DeadObjectElimination::processAllocStack(AllocStackInst *ASI) {
   // Trivial types don't have destructors. Let's try to zap this AllocStackInst.
-  if (!ASI->getElementType().isTrivial(ASI->getModule()) &&
-      // DefaultStringInterpolation is not trivial, but canZapInstruction()
-      // can recognize and eliminate its memory management.
-      !isDefaultStringInterpolation(ASI->getElementType())) {
+  if (!ASI->getElementType().isTrivial(ASI->getModule())) {
     LLVM_DEBUG(llvm::dbgs() << "    Skipping due to non-trivial type:" << *ASI);
     return false;
   }
@@ -875,6 +891,8 @@ bool DeadObjectElimination::processAllocApply(ApplyInst *AI,
   ++DeadAllocApplyEliminated;
   return true;
 }
+
+
 
 //===----------------------------------------------------------------------===//
 //                              Top Level Driver

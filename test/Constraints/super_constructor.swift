@@ -1,4 +1,7 @@
-// RUN: %target-typecheck-verify-swift -parse-as-library 
+// RUN: %target-typecheck-verify-swift -parse-as-library
+
+// Contains tests of overload lists for init or subscript.
+// UNSUPPORTED: swift_evolve
 
 struct S {
   init() {

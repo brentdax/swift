@@ -1,5 +1,8 @@
 // RUN: %target-typecheck-verify-swift
 
+// Contains tests of overload lists for init or subscript.
+// UNSUPPORTED: swift_evolve
+
 // Tests for initializer delegation via self.init(...).
 
 // Initializer delegation: classes

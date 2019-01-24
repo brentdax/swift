@@ -13,7 +13,7 @@
 @_exported import Intents
 import Foundation
 
-#if os(iOS) || os(watchOS) || os(macOS)
+#if false //os(iOS) || os(watchOS) || os(macOS)
 
 public protocol _INIntentSetImageKeyPath { }
 

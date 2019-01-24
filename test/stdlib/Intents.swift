@@ -5,6 +5,7 @@
 // REQUIRES: objc_interop
 
 // UNSUPPORTED: OS=tvos
+// UNSUPPORTED: *
 
 import Intents
 import StdlibUnittest

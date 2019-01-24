@@ -70,11 +70,15 @@ ExpressionTimer::~ExpressionTimer() {
 }
 
 ConstraintSystem::ConstraintSystem(TypeChecker &tc, DeclContext *dc,
-                                   ConstraintSystemOptions options)
+                                   ConstraintSystemOptions options,
+                                   Expr *expr)
   : TC(tc), DC(dc), Options(options),
     Arena(tc.Context, Allocator),
     CG(*new ConstraintGraph(*this))
 {
+  if (expr)
+    ExprWeights = expr->getDepthMap();
+
   assert(DC && "context required");
 }
 
@@ -304,7 +308,7 @@ getAlternativeLiteralTypes(KnownProtocolKind kind) {
   switch (kind) {
 #define PROTOCOL_WITH_NAME(Id, Name) \
   case KnownProtocolKind::Id: llvm_unreachable("Not a literal protocol");
-#define EXPRESSIBLE_BY_LITERAL_PROTOCOL_WITH_NAME(Id, Name)
+#define EXPRESSIBLE_BY_LITERAL_PROTOCOL_WITH_NAME(Id, Name, __, ___)
 #include "swift/AST/KnownProtocols.def"
 
   case KnownProtocolKind::ExpressibleByArrayLiteral:     index = 0; break;
@@ -334,7 +338,7 @@ getAlternativeLiteralTypes(KnownProtocolKind kind) {
   switch (kind) {
 #define PROTOCOL_WITH_NAME(Id, Name) \
   case KnownProtocolKind::Id: llvm_unreachable("Not a literal protocol");
-#define EXPRESSIBLE_BY_LITERAL_PROTOCOL_WITH_NAME(Id, Name)
+#define EXPRESSIBLE_BY_LITERAL_PROTOCOL_WITH_NAME(Id, Name, __, ___)
 #include "swift/AST/KnownProtocols.def"
 
   case KnownProtocolKind::ExpressibleByArrayLiteral:
@@ -2063,7 +2067,7 @@ bool ConstraintSystem::salvage(SmallVectorImpl<Solution> &viable, Expr *expr) {
 
   {
     // Set up solver state.
-    SolverState state(expr, *this, FreeTypeVariableBinding::Disallow);
+    SolverState state(*this, FreeTypeVariableBinding::Disallow);
     state.recordFixes = true;
 
     // Solve the system.
@@ -2071,8 +2075,7 @@ bool ConstraintSystem::salvage(SmallVectorImpl<Solution> &viable, Expr *expr) {
 
     // Check whether we have a best solution; this can happen if we found
     // a series of fixes that worked.
-    if (auto best = findBestSolution(viable, state.ExprWeights,
-                                     /*minimize=*/true)) {
+    if (auto best = findBestSolution(viable, /*minimize=*/true)) {
       if (*best != 0)
         viable[0] = std::move(viable[*best]);
       viable.erase(viable.begin() + 1, viable.end());
@@ -2289,10 +2292,11 @@ bool ConstraintSystem::diagnoseAmbiguity(Expr *expr,
     if (it == indexMap.end())
       continue;
     unsigned index = it->second;
-    it = depthMap.find(anchor);
-    if (it == depthMap.end())
+
+    auto e = depthMap.find(anchor);
+    if (e == depthMap.end())
       continue;
-    unsigned depth = it->second;
+    unsigned depth = e->second.first;
 
     // If we don't have a name to hang on to, it'll be hard to diagnose this
     // overload.

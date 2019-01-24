@@ -144,6 +144,9 @@ public class AnyKeyPath: Hashable, _AppendKeyPath {
   ) -> Self {
     _internalInvariant(bytes > 0 && bytes % 4 == 0,
                  "capacity must be multiple of 4 bytes")
+    _internalInvariant(_class_getInstancePositiveExtentSize(self) ==
+                       _class_getInstancePositiveExtentSize(AnyKeyPath.self),
+                      "AnyKeyPath subclasses cannot add stored properties")
     let result = Builtin.allocWithTailElems_1(self, (bytes/4)._builtinWordValue,
                                               Int32.self)
     result._kvcKeyPathStringPtr = nil

@@ -103,7 +103,7 @@ pushd S:\build\Ninja-DebugAssert\cmark-windows-amd64" "S:\cmark"
 cmake -G Ninja^
   -DCMAKE_BUILD_TYPE=Debug^
   -DCMAKE_C_COMPILER=cl^
-  -DCMAKE_CXX_COMPIELR=cl^
+  -DCMAKE_CXX_COMPILER=cl^
   S:\cmark
 popd
 cmake --build "S:\build\Ninja-DebugAssert\cmark-windows-amd64"
@@ -133,7 +133,7 @@ cmake --build "S:\build\Ninja-DebugAssert\llvm-windows-amd64"
 - Update your path to include the LLVM tools.
 
 ```cmd
-set PATH=%PATH%;S:\build\Ninja-DebugAssert\llvm-windows-amd64\bin
+set PATH=S:\build\Ninja-DebugAssert\llvm-windows-amd64\bin;%PATH%
 ```
 
 ### 7. Build Swift
@@ -177,7 +177,7 @@ cmake --build "S:\build\Ninja-DebugAssert\swift-windows-amd64"
   a file.
 
 ```cmd
-cmake -G "Visual Studio 2017" "S:\swift" -DCMAKE_GENERATOR_PLATFORM="x64"^ ...
+cmake -G "Visual Studio 2017" -DCMAKE_GENERATOR_PLATFORM="x64"^ ...
 ```
 
 ### 8. Build lldb
@@ -212,6 +212,7 @@ Running the testsuite on Windows has additional external dependencies.  You must
   5. sed
   
 ```cmd
+set PATH=S:\build\Ninja-DebugAssert\swift-windows-amd64\bin;S:\build\Ninja-DebugAssert\swift-windows-amd64\libdispatch-prefix\bin;%PATH%;C:\Program Files (x86)\GnuWin32\bin
 ninja -C "S:/build/Ninja-DebugAssert/swift-windows-amd64" check-swift
 ```
 

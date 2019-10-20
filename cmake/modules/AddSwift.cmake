@@ -2449,3 +2449,65 @@ macro(add_swift_tool_symlink name dest component)
   add_llvm_tool_symlink(${name} ${dest} ALWAYS_GENERATE)
   llvm_install_symlink(${name} ${dest} ALWAYS_GENERATE COMPONENT ${component})
 endmacro()
+
+# Add a target that copies unmodified headers to a location in the build
+# directory and later installs them to a path.
+#
+# Usage:
+#   add_swift_copy_headers_target(name
+#     BUILD build_dir
+#     [STATIC]
+#     [LLVM_LINK_COMPONENTS comp1 ...]
+#     [FILE_DEPENDS target1 ...]
+#     source1 [source2 source3 ...])
+#
+# name
+#   Name of the target.
+#
+# BUILD
+#   Directory to copy them to during the build. Should be an absolute path.
+#
+# INSTALL
+#   Directory to install them in. Should be relative.
+#
+# COMPONENT
+#   The Swift component this target belongs to.
+#
+# source1 ...
+#   Headers to add into this library. Should be relative to the current source
+#   directory.
+function(add_swift_copy_headers_target name)
+  set(options)
+  set(single_opts BUILD INSTALL COMPONENT)
+  set(multi_opts)
+  
+  cmake_parse_arguments(ASCHT "${options}" "${single_opts}" "${multi_opts}"
+                        ${ARGN})
+
+  add_custom_command(
+      OUTPUT "${ASCHT_BUILD}"
+      COMMAND ${CMAKE_COMMAND} "-E" "make_directory" "${ASCHT_BUILD}")
+  set(outputs)
+  
+  foreach(file ${ASCHT_UNPARSED_ARGUMENTS})
+    set(source "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
+    set(build "${ASCHT_BUILD}/${file}")
+    
+    add_custom_command(OUTPUT "${build}" DEPENDS "${source}"
+        COMMAND
+          "${CMAKE_COMMAND}" "-E" "copy_if_different" "${source}" "${build}"
+        COMMENT "Copying ${file} to ${ASCHT_BUILD}")
+    list(APPEND outputs "${build}")
+  endforeach()
+  
+  # Put the output dir itself last so that it isn't considered the primary output.
+  list(APPEND outputs "${ASCHT_BUILD}")
+
+  add_custom_target("${name}"
+      DEPENDS "${outputs}"
+      COMMENT "${name}: Copying resources to ${ASCHT_BUILD}")
+      
+  swift_install_in_component(FILES ${ASCHT_UNPARSED_ARGUMENTS}
+      DESTINATION ${ASCHT_INSTALL}
+      COMPONENT ${ASCHT_COMPONENT})
+endfunction()

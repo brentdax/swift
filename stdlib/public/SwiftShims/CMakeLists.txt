@@ -1,4 +1,8 @@
-set(sources
+add_swift_copy_headers_target(copy_shim_headers
+    BUILD "${SWIFTLIB_DIR}/shims"
+    INSTALL "lib/swift/shims"
+    COMPONENT stdlib
+    
   AssertionReporting.h
   CoreFoundationShims.h
   FoundationShims.h
@@ -54,29 +58,6 @@ set(sources
 
   module.modulemap
   )
-set(output_dir "${SWIFTLIB_DIR}/shims")
-
-add_custom_command(
-    OUTPUT "${output_dir}"
-    COMMAND ${CMAKE_COMMAND} "-E" "make_directory" "${output_dir}")
-set(outputs)
-foreach(input ${sources})
-  add_custom_command(
-      OUTPUT "${output_dir}/${input}"
-      DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${input}"
-      COMMAND
-        "${CMAKE_COMMAND}" "-E" "copy_if_different"
-        "${CMAKE_CURRENT_SOURCE_DIR}/${input}"
-        "${output_dir}/${input}"
-      COMMENT "Copying ${input} to ${output_dir}")
-  list(APPEND outputs "${output_dir}/${input}")
-endforeach()
-# Put the output dir itself last so that it isn't considered the primary output.
-list(APPEND outputs "${output_dir}")
-
-add_custom_target("copy_shim_headers"
-    DEPENDS "${outputs}"
-    COMMENT "Copying SwiftShims module to ${output_dir}")
 
 if ("${LLVM_PACKAGE_VERSION}" STREQUAL "")
   message(FATAL_ERROR
@@ -141,10 +122,6 @@ if(NOT SWIFT_BUILT_STANDALONE)
     add_dependencies(${target} ${clang_resource_headers})
   endforeach()
 endif()
-
-swift_install_in_component(FILES ${sources}
-                           DESTINATION "lib/swift/shims"
-                           COMPONENT stdlib)
 
 # Install Clang headers under the Swift library so that an installed Swift's
 # module importer can find the compiler headers corresponding to its Clang.

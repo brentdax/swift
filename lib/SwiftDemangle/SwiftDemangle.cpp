@@ -113,3 +113,14 @@ swift_demangler_demangleTypeToNode(swift_demangler_t demangler,
 void swift_demangler_dumpNode(swift_demangler_node_t node) {
   static_cast<swift::Demangle::NodePointer>(node)->dump();
 }
+
+swift_demangler_node_kind_t
+swift_demangler_getNodeKind(swift_demangler_node_t node) {
+  return swift_demangler_node_kind_t(
+      static_cast<swift::Demangle::NodePointer>(node)->getKind());
+}
+
+const char * _Nonnull
+swift_demangler_getNodeKindName(swift_demangler_node_kind_t kind) {
+  return swift::Demangle::getNodeKindString(swift::Demangle::Node::Kind(kind));
+}

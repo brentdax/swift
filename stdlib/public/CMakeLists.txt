@@ -53,6 +53,7 @@ if(CXX_SUPPORTS_DEFAULT_HIDDEN_VISIBILITY)
 endif()
 
 add_subdirectory(SwiftShims)
+add_subdirectory(SwiftDemangle)
 
 if(SWIFT_BUILD_STDLIB)
   # These must be kept in dependency order so that any referenced targets

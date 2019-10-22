@@ -16,6 +16,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "swift/Demangling/Demangle.h"
+#include "swift/Demangling/Demangler.h"
 #include "swift-c/SwiftDemangle/SwiftDemangle.h"
 
 static size_t swift_demangle_getDemangledName_Options(const char *MangledName,
@@ -87,7 +88,14 @@ size_t fnd_get_demangled_name(const char *MangledName, char *OutputBuffer,
 }
 
 struct swift_demangler {
-  swift::Demangle::Context context;
+  swift::Demangle::Demangler D;
+
+  const char * dup(StringRef str) {
+    auto buffer = D.Allocate<char>(str.size() + 1);
+    memcpy(buffer, str.data(), str.size());
+    buffer[str.size()] = '\0';
+    return buffer;
+  }
 };
 
 swift_demangler_t swift_demangler_alloc(void) {
@@ -101,13 +109,16 @@ void swift_demangler_dealloc(swift_demangler_t demangler) {
 swift_demangler_node_t
 swift_demangler_demangleSymbolToNode(swift_demangler_t demangler,
                                      const char * symbol) {
-  return demangler->context.demangleSymbolAsNode(symbol);
+  if (isMangledName(symbol)) {
+    return demangler->D.demangleSymbol(symbol);
+  }
+  return demangleOldSymbolAsNode(symbol, demangler->D);
 }
 
 swift_demangler_node_t
 swift_demangler_demangleTypeToNode(swift_demangler_t demangler,
                                    const char * type) {
-  return demangler->context.demangleTypeAsNode(type);
+  return demangler->D.demangleType(type);
 }
 
 void swift_demangler_dumpNode(swift_demangler_node_t node) {
@@ -151,6 +162,19 @@ swift_demangler_getNodeIndex(swift_demangler_node_t node) {
 }
 
 const char *
-swift_demangler_getNodeText(swift_demangler_node_t node) {
-  return static_cast<swift::Demangle::NodePointer>(node)->getText().data();
+swift_demangler_getNodeText(swift_demangler_t demangler,
+                            swift_demangler_node_t node) {
+  return demangler->dup(
+      static_cast<swift::Demangle::NodePointer>(node)->getText());
 }
+
+const char *
+swift_demangler_getRemangledNode(swift_demangler_t demangler,
+                                 swift_demangler_node_t node) {
+  return demangler->dup(
+      swift::Demangle::mangleNode(
+        static_cast<swift::Demangle::NodePointer>(node),
+        [&](SymbolicReferenceKind, const void *) { return nullptr; },
+        demangler->D));
+}
+

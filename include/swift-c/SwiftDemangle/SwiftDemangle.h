@@ -84,15 +84,17 @@ int swift_demangle_hasSwiftCallingConvention(const char *MangledName);
 /// deallocated.
 typedef struct swift_demangler * swift_demangler_t
 __attribute__((swift_wrapper(struct)))
-__attribute__((swift_name("UnsafeSwiftDemangler")));
+__attribute__((swift_name("UnsafeDemangler")));
 
 /// A node in a mangled name. Each node belongs to the
 /// \c swift_demangler_context_t used to create it and
 typedef void * swift_demangler_node_t
 __attribute__((swift_wrapper(struct)))
-__attribute__((swift_name("UnsafeSwiftDemanglerNode")));
+__attribute__((swift_name("UnsafeNode")));
 
-typedef enum __attribute__((enum_extensibility(open)))
+typedef enum
+__attribute__((enum_extensibility(open)))
+__attribute__((swift_name("NodeKind")))
 swift_demangler_node_kind_t : uint16_t {
   swift_demangler_node_kind_Allocator,
   swift_demangler_node_kind_AnonymousContext,
@@ -347,19 +349,18 @@ swift_demangler_node_kind_t : uint16_t {
   swift_demangler_node_kind_OpaqueTypeDescriptorAccessorVar,
   swift_demangler_node_kind_OpaqueReturnType,
   swift_demangler_node_kind_OpaqueReturnTypeOf,
-} swift_demangler_node_kind_t
-__attribute__((swift_name("UnsafeSwiftDemanglerNodeKind")));
+} swift_demangler_node_kind_t;
 
 SWIFT_DEMANGLE_LINKAGE
 const char * _Nonnull
 swift_demangler_getNodeKindName(swift_demangler_node_kind_t kind)
-__attribute__((swift_name("getter:UnsafeSwiftDemanglerNodeKind.unsafeName(self:)")));
+__attribute__((swift_name("getter:NodeKind.unsafeName(self:)")));
 
 /// Creates a new Swift demangler.
 SWIFT_DEMANGLE_LINKAGE
 swift_demangler_t _Nonnull
 swift_demangler_alloc(void)
-__attribute__((swift_name("UnsafeSwiftDemangler.init()")));
+__attribute__((swift_name("UnsafeDemangler.init()")));
 
 /// Destroys a Swift demangler and all of the nodes, strings, and other memory
 /// associated with it.
@@ -367,7 +368,7 @@ __attribute__((swift_name("UnsafeSwiftDemangler.init()")));
 /// \param demangler The demangler to destroy.
 SWIFT_DEMANGLE_LINKAGE
 void swift_demangler_dealloc(swift_demangler_t _Nonnull demangler)
-__attribute__((swift_name("UnsafeSwiftDemangler.deallocate(self:)")));
+__attribute__((swift_name("UnsafeDemangler.deallocate(self:)")));
 
 /// Demangles an arbitrary Swift name and returns the parse tree.
 ///
@@ -382,7 +383,7 @@ SWIFT_DEMANGLE_LINKAGE
 swift_demangler_node_t _Nullable
 swift_demangler_demangleSymbolToNode(swift_demangler_t _Nonnull demangler,
                                      const char * _Nonnull symbol)
-__attribute__((swift_name("UnsafeSwiftDemangler.node(self:fromSymbol:)")));
+__attribute__((swift_name("UnsafeDemangler.node(self:fromSymbol:)")));
 
 /// Demangles a Swift type name and returns the parse tree.
 ///
@@ -397,18 +398,18 @@ SWIFT_DEMANGLE_LINKAGE
 swift_demangler_node_t _Nullable
 swift_demangler_demangleTypeToNode(swift_demangler_t _Nonnull demangler,
                                    const char * _Nonnull type)
-__attribute__((swift_name("UnsafeSwiftDemangler.node(self:fromType:)")));
+__attribute__((swift_name("UnsafeDemangler.node(self:fromType:)")));
 
 /// Dumps the provided node to stderr; useful for debugging.
 SWIFT_DEMANGLE_LINKAGE
 void swift_demangler_dumpNode(swift_demangler_node_t _Nonnull node)
-__attribute__((swift_name("UnsafeSwiftDemanglerNode.dump(self:)")));
+__attribute__((swift_name("UnsafeNode.dump(self:)")));
 
 /// Returns the kind of the node.
 SWIFT_DEMANGLE_LINKAGE
 swift_demangler_node_kind_t
 swift_demangler_getNodeKind(swift_demangler_node_t _Nonnull node)
-__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.kind(self:)")));
+__attribute__((swift_name("getter:UnsafeNode.kind(self:)")));
 
 typedef enum __attribute__((enum_extensibility(open)))
 swift_demangler_node_payload_kind_t : uint8_t {
@@ -416,34 +417,41 @@ swift_demangler_node_payload_kind_t : uint8_t {
   swift_demangler_node_payload_kind_Index,
   swift_demangler_node_payload_kind_Children
 } swift_demangler_node_payload_kind_t
-__attribute__((swift_name("UnsafeSwiftDemanglerNodePayloadKind")));
+__attribute__((swift_name("UnsafeNodePayloadKind")));
 
 /// Returns the kind of payload this node has.
 SWIFT_DEMANGLE_LINKAGE
 swift_demangler_node_payload_kind_t
 swift_demangler_getNodePayloadKind(swift_demangler_node_t _Nonnull node)
-__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.payloadKind(self:)")));
+__attribute__((swift_name("getter:UnsafeNode.payloadKind(self:)")));
 
 /// Returns the number of children the node has, if its payload is children.
 SWIFT_DEMANGLE_LINKAGE
 size_t
 swift_demangler_getNumNodeChildren(swift_demangler_node_t _Nonnull node)
-__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.count(self:)")));
+__attribute__((swift_name("getter:UnsafeNode.count(self:)")));
 
 /// Returns a specific child node of this node, if its payload is children.
 swift_demangler_node_t _Nonnull
 swift_demangler_getNodeChild(swift_demangler_node_t _Nonnull node, size_t index)
-__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.subscript(self:_:)")));
+__attribute__((swift_name("UnsafeNode.child(self:at:)")));
 
 /// Returns the index contained in this node, if it contains an index.
 uint64_t
 swift_demangler_getNodeIndex(swift_demangler_node_t _Nonnull node)
-__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.index(self:)")));
+__attribute__((swift_name("getter:UnsafeNode.index(self:)")));
 
 /// Returns the text contained in this node, if it contains a string.
 const char * _Nonnull
-swift_demangler_getNodeText(swift_demangler_node_t _Nonnull node)
-__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.unsafeText(self:)")));
+swift_demangler_getNodeText(swift_demangler_t _Nonnull demangler,
+                            swift_demangler_node_t _Nonnull node)
+__attribute__((swift_name("UnsafeDemangler.unsafeText(self:from:)")));
+
+/// Returns the text contained in this node, if it contains a string.
+const char * _Nonnull
+swift_demangler_getRemangledNode(swift_demangler_t _Nonnull demangler,
+                                 swift_demangler_node_t _Nonnull node)
+__attribute__((swift_name("UnsafeDemangler.unsafeSymbol(self:from:)")));
 
 #ifdef __cplusplus
 } // extern "C"

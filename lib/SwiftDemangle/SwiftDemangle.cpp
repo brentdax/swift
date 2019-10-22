@@ -124,3 +124,33 @@ const char * _Nonnull
 swift_demangler_getNodeKindName(swift_demangler_node_kind_t kind) {
   return swift::Demangle::getNodeKindString(swift::Demangle::Node::Kind(kind));
 }
+
+swift_demangler_node_payload_kind_t
+swift_demangler_getNodePayloadKind(swift_demangler_node_t node) {
+  if (static_cast<swift::Demangle::NodePointer>(node)->hasText())
+    return swift_demangler_node_payload_kind_Text;
+  else if (static_cast<swift::Demangle::NodePointer>(node)->hasIndex())
+    return swift_demangler_node_payload_kind_Index;
+  else
+    return swift_demangler_node_payload_kind_Children;
+}
+
+size_t
+swift_demangler_getNumNodeChildren(swift_demangler_node_t node) {
+  return static_cast<swift::Demangle::NodePointer>(node)->getNumChildren();
+}
+
+swift_demangler_node_t
+swift_demangler_getNodeChild(swift_demangler_node_t node, size_t index) {
+  return static_cast<swift::Demangle::NodePointer>(node)->getChild(index);
+}
+
+uint64_t
+swift_demangler_getNodeIndex(swift_demangler_node_t node) {
+  return static_cast<swift::Demangle::NodePointer>(node)->getIndex();
+}
+
+const char *
+swift_demangler_getNodeText(swift_demangler_node_t node) {
+  return static_cast<swift::Demangle::NodePointer>(node)->getText().data();
+}

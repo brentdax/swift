@@ -410,6 +410,41 @@ swift_demangler_node_kind_t
 swift_demangler_getNodeKind(swift_demangler_node_t _Nonnull node)
 __attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.kind(self:)")));
 
+typedef enum __attribute__((enum_extensibility(open)))
+swift_demangler_node_payload_kind_t : uint8_t {
+  swift_demangler_node_payload_kind_Text,
+  swift_demangler_node_payload_kind_Index,
+  swift_demangler_node_payload_kind_Children
+} swift_demangler_node_payload_kind_t
+__attribute__((swift_name("UnsafeSwiftDemanglerNodePayloadKind")));
+
+/// Returns the kind of payload this node has.
+SWIFT_DEMANGLE_LINKAGE
+swift_demangler_node_payload_kind_t
+swift_demangler_getNodePayloadKind(swift_demangler_node_t _Nonnull node)
+__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.payloadKind(self:)")));
+
+/// Returns the number of children the node has, if its payload is children.
+SWIFT_DEMANGLE_LINKAGE
+size_t
+swift_demangler_getNumNodeChildren(swift_demangler_node_t _Nonnull node)
+__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.count(self:)")));
+
+/// Returns a specific child node of this node, if its payload is children.
+swift_demangler_node_t _Nonnull
+swift_demangler_getNodeChild(swift_demangler_node_t _Nonnull node, size_t index)
+__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.subscript(self:_:)")));
+
+/// Returns the index contained in this node, if it contains an index.
+uint64_t
+swift_demangler_getNodeIndex(swift_demangler_node_t _Nonnull node)
+__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.index(self:)")));
+
+/// Returns the text contained in this node, if it contains a string.
+const char * _Nonnull
+swift_demangler_getNodeText(swift_demangler_node_t _Nonnull node)
+__attribute__((swift_name("getter:UnsafeSwiftDemanglerNode.unsafeText(self:)")));
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

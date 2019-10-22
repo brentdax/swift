@@ -77,6 +77,69 @@ size_t swift_demangle_getModuleName(const char *MangledName,
 SWIFT_DEMANGLE_LINKAGE
 int swift_demangle_hasSwiftCallingConvention(const char *MangledName);
 
+/// An instance which manages the lifetime of information about mangled names.
+/// The memory returned by calls to the \c swift_demangler_context_*() and
+/// \c swift_demangler_node_* will remain valid until the context is
+/// deallocated.
+typedef struct swift_demangler * swift_demangler_t
+__attribute__((swift_wrapper(struct)))
+__attribute__((swift_name("UnsafeSwiftDemangler")));
+
+/// A node in a mangled name. Each node belongs to the
+/// \c swift_demangler_context_t used to create it and
+typedef void * swift_demangler_node_t
+__attribute__((swift_wrapper(struct)))
+__attribute__((swift_name("UnsafeSwiftDemanglerNode")));
+
+/// Creates a new Swift demangler.
+SWIFT_DEMANGLE_LINKAGE
+swift_demangler_t _Nonnull
+swift_demangler_alloc(void)
+__attribute__((swift_name("UnsafeSwiftDemangler.init()")));
+
+/// Destroys a Swift demangler and all of the nodes, strings, and other memory
+/// associated with it.
+///
+/// \param demangler The demangler to destroy.
+SWIFT_DEMANGLE_LINKAGE
+void swift_demangler_dealloc(swift_demangler_t _Nonnull demangler)
+__attribute__((swift_name("UnsafeSwiftDemangler.deallocate(self:)")));
+
+/// Demangles an arbitrary Swift name and returns the parse tree.
+///
+/// \param demangler The demangler to use when demangling this symbol. The
+/// returned node and all subobjects of it will remain valid until this
+/// demangler is deallocated.
+/// \param symbol A string containing the symbol name to demangle.
+///
+/// \return The root node of the parsed symbol, or null if it could not be
+/// demangled.
+SWIFT_DEMANGLE_LINKAGE
+swift_demangler_node_t _Nullable
+swift_demangler_demangleSymbolToNode(swift_demangler_t _Nonnull demangler,
+                                     const char * _Nonnull symbol)
+__attribute__((swift_name("UnsafeSwiftDemangler.node(self:fromSymbol:)")));
+
+/// Demangles a Swift type name and returns the parse tree.
+///
+/// \param demangler The demangler to use when demangling this type. The
+/// returned node and all subobjects of it will remain valid until this
+/// demangler is deallocated.
+/// \param type A string containing the type name to demangle.
+///
+/// \return The root node of the parsed type, or null if it could not be
+/// demangled.
+SWIFT_DEMANGLE_LINKAGE
+swift_demangler_node_t _Nullable
+swift_demangler_demangleTypeToNode(swift_demangler_t _Nonnull demangler,
+                                   const char * _Nonnull type)
+__attribute__((swift_name("UnsafeSwiftDemangler.node(self:fromType:)")));
+
+/// Dumps the provided node to stderr; useful for debugging.
+SWIFT_DEMANGLE_LINKAGE
+void swift_demangler_dumpNode(swift_demangler_node_t _Nonnull node)
+__attribute__((swift_name("UnsafeSwiftDemanglerNode.dump(self:)")));
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

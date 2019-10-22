@@ -86,3 +86,30 @@ size_t fnd_get_demangled_name(const char *MangledName, char *OutputBuffer,
   return swift_demangle_getDemangledName(MangledName, OutputBuffer, Length);
 }
 
+struct swift_demangler {
+  swift::Demangle::Context context;
+};
+
+swift_demangler_t swift_demangler_alloc(void) {
+  return new swift_demangler();
+}
+
+void swift_demangler_dealloc(swift_demangler_t demangler) {
+  delete demangler;
+}
+
+swift_demangler_node_t
+swift_demangler_demangleSymbolToNode(swift_demangler_t demangler,
+                                     const char * symbol) {
+  return demangler->context.demangleSymbolAsNode(symbol);
+}
+
+swift_demangler_node_t
+swift_demangler_demangleTypeToNode(swift_demangler_t demangler,
+                                   const char * type) {
+  return demangler->context.demangleTypeAsNode(type);
+}
+
+void swift_demangler_dumpNode(swift_demangler_node_t node) {
+  static_cast<swift::Demangle::NodePointer>(node)->dump();
+}

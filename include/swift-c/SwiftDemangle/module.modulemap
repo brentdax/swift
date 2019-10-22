@@ -1,0 +1,6 @@
+module SwiftDemangle {
+  header "SwiftDemangle.h"
+  header "MangleHack.h"
+  header "Platform.h"
+  link "swiftDemangle"
+}

@@ -1,16 +1,9 @@
-add_swift_host_library(swiftDemangle SHARED
+add_swift_target_library(swiftDemangle SHARED
+  LINK_LIBRARIES swiftDemangling
+  DEPENDS copy_swiftDemangle_headers
+  TARGET_SDKS "${SWIFT_HOST_VARIANT_SDK}"
+  COMPILE_DEFINITIONS LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING=1
+  INSTALL
+  INSTALL_IN_COMPONENT compiler
   SwiftDemangle.cpp
   MangleHack.cpp)
-target_compile_definitions(swiftDemangle PRIVATE
-  LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING=1)
-target_link_libraries(swiftDemangle PRIVATE
-  swiftDemangling)
-
-add_dependencies(compiler swiftDemangle)
-swift_install_in_component(TARGETS swiftDemangle
-  LIBRARY
-    DESTINATION "lib${LLVM_LIBDIR_SUFFIX}"
-    COMPONENT compiler
-  ARCHIVE
-    DESTINATION "lib${LLVM_LIBDIR_SUFFIX}"
-    COMPONENT compiler)

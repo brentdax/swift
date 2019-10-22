@@ -1679,6 +1679,7 @@ function(add_swift_target_library name)
         INSTALL_IN_COMPONENT
         DARWIN_INSTALL_NAME_DIR)
   set(SWIFTLIB_multiple_parameter_options
+        COMPILE_DEFINITIONS
         C_COMPILE_FLAGS
         DEPENDS
         FILE_DEPENDS
@@ -1991,6 +1992,8 @@ function(add_swift_target_library name)
         DEPLOYMENT_VERSION_WATCHOS "${SWIFTLIB_DEPLOYMENT_VERSION_WATCHOS}"
         GYB_SOURCES ${SWIFTLIB_GYB_SOURCES}
       )
+      target_compile_definitions("${VARIANT_NAME}" PRIVATE
+        ${SWIFTLIB_COMPILE_DEFINITIONS})
 
       if(sdk STREQUAL WINDOWS)
         if(SWIFT_COMPILER_IS_MSVC_LIKE)

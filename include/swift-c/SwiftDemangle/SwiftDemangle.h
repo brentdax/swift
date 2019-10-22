@@ -19,7 +19,8 @@
 #ifndef SWIFT_DEMANGLE_SWIFT_DEMANGLE_H
 #define SWIFT_DEMANGLE_SWIFT_DEMANGLE_H
 
-#include <swift/SwiftDemangle/Platform.h>
+#include <stddef.h>
+#include "Platform.h"
 
 /// @{
 /// Version constants for libswiftDemangle library.

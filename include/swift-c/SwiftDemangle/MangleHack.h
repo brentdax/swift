@@ -17,12 +17,20 @@
 #ifndef SWIFT_MANGLEHACK_H
 #define SWIFT_MANGLEHACK_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // This returns a C string that must be deallocated with free().
-extern "C" const char *
+const char *
 _swift_mangleSimpleClass(const char *module, const char *class_);
 
 // This returns a C string that must be deallocated with free().
-extern "C" const char *
+const char *
 _swift_mangleSimpleProtocol(const char *module, const char *protocol);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif

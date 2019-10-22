@@ -17,7 +17,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "swift/SwiftDemangle/MangleHack.h"
+#include "swift-c/SwiftDemangle/MangleHack.h"
 #include "swift/Strings.h"
 #include <cassert>
 #include <cstdarg>

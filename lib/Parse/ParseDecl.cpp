@@ -4456,7 +4456,9 @@ ParserResult<ImportDecl> Parser::parseDeclImport(ParseDeclOptions Flags,
     if (parseAnyIdentifier(importPath.back().Item,
                            diag::expected_identifier_in_decl, "import"))
       return nullptr;
-    HasNext = consumeIf(tok::period);
+    HasNext = consumeIf(tok::period) ||
+        (Context.LangOpts.EnableExperimentalModuleSelector &&
+         consumeIf(tok::colon_colon));
   } while (HasNext);
 
   // Collect all access path components to an import path.

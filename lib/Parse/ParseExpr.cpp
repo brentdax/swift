@@ -1149,7 +1149,8 @@ Parser::parseExprPostfixSuffix(ParserResult<Expr> Result, bool isExprBasic,
                      ? diag::expected_identifier_after_super_dot_expr
                      : diag::expected_member_name;
       auto Name = parseDeclNameRef(NameLoc, D,
-          DeclNameFlag::AllowKeywords | DeclNameFlag::AllowCompoundNames);
+          DeclNameFlag::AllowKeywords | DeclNameFlag::AllowCompoundNames |
+          DeclNameFlag::AllowModuleSelector);
       if (!Name) {
         SourceRange ErrorRange = Result.get()->getSourceRange();
         ErrorRange.widen(TokLoc);
@@ -1584,7 +1585,8 @@ ParserResult<Expr> Parser::parseExprPrimary(Diag<> ID, bool isExprBasic) {
     }
 
     Name = parseDeclNameRef(NameLoc, diag::expected_identifier_after_dot_expr,
-        DeclNameFlag::AllowKeywords | DeclNameFlag::AllowCompoundNames);
+        DeclNameFlag::AllowKeywords | DeclNameFlag::AllowCompoundNames |
+        DeclNameFlag::AllowModuleSelector);
     if (!Name)
       return makeParserErrorResult(new (Context) ErrorExpr(DotLoc));
     SyntaxContext->createNodeInPlace(SyntaxKind::MemberAccessExpr);
@@ -2127,6 +2129,33 @@ static bool tryParseArgLabelList(Parser &P, Parser::DeclNameOptions flags,
 DeclNameRef Parser::parseDeclNameRef(DeclNameLoc &loc,
                                      const Diagnostic &diag,
                                      DeclNameOptions flags) {
+  // Consume the module name, if present.
+  SourceLoc moduleSelectorLoc;
+  Identifier moduleSelector;
+  if (Context.LangOpts.EnableExperimentalModuleSelector &&
+      peekToken().is(tok::colon_colon)) {
+    // FIXME: libSyntax
+
+    if (Tok.is(tok::identifier)) { // FIXME: tok::dollarident?
+      moduleSelectorLoc = consumeIdentifier(&moduleSelector);
+    }
+    else {
+      diagnose(Tok, diag::expected_identifier_in_module_selector);
+      moduleSelector = Identifier();
+      moduleSelectorLoc = consumeToken();
+    }
+
+    // Diagnose if we don't allow a module selector here.
+    if (!flags.contains(DeclNameFlag::AllowModuleSelector)) {
+      diagnose(Tok, diag::module_selector_not_allowed_here)
+          .fixItRemove({moduleSelectorLoc, Tok.getLoc()});
+      moduleSelector = Identifier();
+      moduleSelectorLoc = SourceLoc();
+    }
+
+    consumeToken(tok::colon_colon);
+  }
+
   // Consume the base name.
   DeclBaseName baseName;
   SourceLoc baseNameLoc;
@@ -2195,7 +2224,8 @@ Expr *Parser::parseExprIdentifier() {
   // Parse the unqualified-decl-name.
   DeclNameLoc loc;
   DeclNameRef name = parseDeclNameRef(loc, diag::expected_expr,
-                                      DeclNameFlag::AllowCompoundNames);
+                                      DeclNameFlag::AllowCompoundNames |
+                                      DeclNameFlag::AllowModuleSelector);
 
   SmallVector<TypeRepr*, 8> args;
   SourceLoc LAngleLoc, RAngleLoc;
@@ -3061,8 +3091,11 @@ ParserStatus Parser::parseExprList(tok leftTok, tok rightTok,
       SyntaxParsingContext operatorContext(SyntaxContext,
                                            SyntaxKind::IdentifierExpr);
       DeclNameLoc Loc;
+      // FIXME: We would like to allow module selectors on binary operators, but
+      // the condition above won't let us reach this code.
       auto OperName = parseDeclNameRef(Loc, diag::expected_operator_ref,
-                                       DeclNameFlag::AllowOperators);
+                                       DeclNameFlag::AllowOperators |
+                                       DeclNameFlag::AllowModuleSelector);
       if (!OperName) {
         return makeParserError();
       }

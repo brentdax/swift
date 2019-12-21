@@ -1358,11 +1358,10 @@ void Parser::parseObjCSelector(SmallVector<Identifier, 4> &Names,
     SyntaxParsingContext SelectorPieceContext(SyntaxContext,
                                               SyntaxKind::ObjCSelectorPiece);
     // Empty selector piece.
-    if (Tok.is(tok::colon)) {
+    if (consumeIfColonSplittingDoubles()) {
       Names.push_back(Identifier());
-      NameLocs.push_back(Tok.getLoc());
+      NameLocs.push_back(PreviousLoc);
       IsNullarySelector = false;
-      consumeToken();
       continue;
     }
 
@@ -1373,8 +1372,7 @@ void Parser::parseObjCSelector(SmallVector<Identifier, 4> &Names,
       consumeToken();
 
       // If we have a colon, consume it.
-      if (Tok.is(tok::colon)) {
-        consumeToken();
+      if (consumeIfColonSplittingDoubles()) {
         IsNullarySelector = false;
         continue;
       }

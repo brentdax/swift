@@ -1068,6 +1068,11 @@ void IRGenerator::emitGlobalTopLevel(llvm::StringSet<> *linkerDirectives) {
 
     CurrentIGMPtr IGM = getGenModule(&f);
     IGM->emitSILFunction(&f);
+
+    if (f.getName() == SWIFT_ENTRY_POINT_FUNCTION &&
+        !f.getDynamicallyReplacedFunction()) {
+      IGM->emitMainMetadata(&f);
+    }
   }
 
   // Emit static initializers.
@@ -1111,6 +1116,59 @@ void IRGenerator::emitGlobalTopLevel(llvm::StringSet<> *linkerDirectives) {
     IRGenModule *IGM = Iter.second;
     IGM->finishEmitAfterTopLevel();
   }
+}
+
+static Optional<CanType> getMainTypeFromEnclosingModule(SILFunction *f) {
+  auto files = f->getModule().getSwiftModule()->getFiles();
+  auto mainFile = llvm::find_if(files, [](FileUnit *file) -> bool {
+    return file->hasMainDecl();
+  });
+  if (mainFile == files.end()) return None;
+
+  // First, try as a class.
+  NominalTypeDecl *mainDecl = (*mainFile)->getMainClass();
+
+  // No? Must be a generated `$main` method; get its context.
+  if (!mainDecl) {
+    mainDecl = (*mainFile)->getMainFunc()->
+        getInnermostTypeContext()->getSelfNominalTypeDecl();
+  }
+
+  assert(mainDecl && "hasMainDecl() file should let you getMainSomething()");
+
+  return mainDecl->getDeclaredInterfaceType()->getCanonicalType();
+}
+
+void IRGenModule::emitMainMetadata(SILFunction *f) {
+  // Pointer to main() function.
+  auto fEntity = LinkEntity::forSILFunction(f, false);
+  auto fIndirectPtr = getAddrOfLLVMVariableOrGOTEquivalent(fEntity);
+
+  // Type annotated with @main or other attribute.
+  llvm::Constant *mainTypeMangling = nullptr;
+  int32_t mainTypeManglingSize = 0;
+  if (auto mainType = getMainTypeFromEnclosingModule(f)) {
+    auto pair = getTypeRef(*mainType, CanGenericSignature(),
+                           MangledTypeRefRole::Metadata);
+    mainTypeMangling = std::get<0>(pair);
+    mainTypeManglingSize = std::get<1>(pair);
+  }
+
+  // Okay, now generate a section with that info.
+  ConstantInitBuilder builder(*this);
+  auto record = builder.beginStruct();
+
+  record.addRelativeAddress(fIndirectPtr);
+  record.addRelativeAddressOrNull(mainTypeMangling);
+  record.addInt32(mainTypeManglingSize);
+
+  auto mainInfo =
+      record.finishAndCreateGlobal("\x01l_main_info", Alignment(4),
+                                   /*isConstant*/true,
+                                   llvm::GlobalValue::PrivateLinkage);
+  mainInfo->setSection("__TEXT, __swift5_main, regular, no_dead_strip");
+
+  addUsedGlobal(mainInfo);
 }
 
 void IRGenModule::finishEmitAfterTopLevel() {

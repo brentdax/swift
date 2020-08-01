@@ -1602,6 +1602,7 @@ public:
   void emitRuntimeRegistration();
   void emitVTableStubs();
   void emitTypeVerifier();
+  void emitMainMetadata(SILFunction *f);
 
   /// Create llvm metadata which encodes the branch weights given by
   /// \p TrueCount and \p FalseCount.
